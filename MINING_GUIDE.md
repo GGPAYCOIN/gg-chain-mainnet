@@ -25,17 +25,18 @@ Every node must start with our official genesis block. Download it from this rep
 ```bash
 wget [https://raw.githubusercontent.com/GGPAYCOIN/gg-chain-mainnet/main/network/genesis.json](https://raw.githubusercontent.com/GGPAYCOIN/gg-chain-mainnet/main/network/genesis.json)
 
+enode://5b6a99801cb71badf990c6be3de3d9eb5b5dc111d057edd0f6bc28b0476af26a5f9274d2f1511ba003d397932da318e489f7d2bcdc96315f33edfcd032897b13@84.46.240.62:30301
 
 ⚙️ Step 3: Node Initialization
 ​Initialize your local data directory with the genesis file: geth --datadir ./node_data init genesis.json
 
-🏗️ Step 4: Connecting to the Network
-​To sync with our mainnet, start your node with the following command:geth --datadir ./node_data \
-     --networkid 2026 \
-     --http --http.addr 0.0.0.0 \
-     --http.corsdomain "*" \
-     --http.vhosts "*" \
-     --http.api eth,net,web3,miner
+🏗️ Step 4: geth --networkid 2026 \
+--bootnodes "enode://5b6a99801cb71badf990c6be3de3d9eb5b5dc111d057edd0f6bc28b0476af26a5f9274d2f1511ba003d397932da318e489f7d2bcdc96315f33edfcd032897b13@84.46.240.62:30301" \
+--http --http.addr 0.0.0.0 \
+--http.corsdomain "*" \
+--http.vhosts "*" \
+--http.api eth,net,web3,miner
+
 
 
 ⛏️ Step 5: Start Mining (PoW)
