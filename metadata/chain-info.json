@@ -1,0 +1,11 @@
+{
+  "name": "GG HyperNet",
+  "chainId": 2026,
+  "rpc": ["https://gghyper.net/rpc/"],
+  "nativeCurrency": {
+    "name": "GGPAY",
+    "symbol": "ggpay",
+    "decimals": 18
+  },
+  "infoURL": "https://gghyper.net"
+}
