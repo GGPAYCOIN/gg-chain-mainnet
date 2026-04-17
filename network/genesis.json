@@ -1,0 +1,38 @@
+</head>
+<body>
+    <div class="container">
+        <img src="https://raw.githubusercontent.com/GGPAYCOIN/gg-chain-mainnet/main/metadata/logo.png.png" class="logo-img" alt="GGPAY">
+        <h1>🌐 GGPAY MAINNET LIVE</h1>
+        <div class="status-box">
+            <div class="label">Current Block Height</div>
+            <p id="blockHeight">CONNECTING...</p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchBlock() {
+            try {
+                const response = await fetch('/rpc/', {
+EOFtml>cript>Block();etchBlock, 3000);ror("RPC Error:", err); }rText = "#" + parseInt(data.result, 16);})
+root@vmi3230129:~# cat ~/genesis.json
+{
+  "config": {
+    "chainId": 2026,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "constantinopleBlock": 0,
+    "petersburgBlock": 0,
+    "istanbulBlock": 0,
+    "berlinBlock": 0,
+    "londonBlock": 0,
+    "terminalTotalDifficulty": 0
+  },
+  "difficulty": "0x1",
+  "gasLimit": "8000000",
+  "alloc": {
+    "0xcDc7B0aF02048945cB8ECBD9e98E209112320FF7": { "balance": "21000000000000000000000000" }
+  }
+}
