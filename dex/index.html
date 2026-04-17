@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GG-Swap | Decentralized Exchange</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #0b0c10; color: #66fcf1; font-family: 'Orbitron', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .swap-container { background: #1f2833; padding: 30px; border-radius: 20px; border: 1px solid #45a29e; width: 400px; box-shadow: 0 0 20px rgba(102, 252, 241, 0.2); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h2 { margin: 0; font-size: 1.2em; color: #45a29e; }
+        .token-box { background: #0b0c10; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #1f2833; }
+        .token-box label { font-size: 0.8em; color: #8b949e; display: block; margin-bottom: 5px; }
+        .token-box input { background: transparent; border: none; color: #fff; font-size: 1.5em; width: 100%; outline: none; }
+        .token-box select { background: #1f2833; border: none; color: #66fcf1; padding: 5px; border-radius: 5px; cursor: pointer; }
+        .swap-btn { width: 100%; background: #45a29e; border: none; padding: 15px; color: #0b0c10; font-weight: bold; border-radius: 15px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .swap-btn:hover { background: #66fcf1; box-shadow: 0 0 15px #66fcf1; }
+        .connect-wallet { background: transparent; border: 1px solid #45a29e; color: #66fcf1; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="swap-container">
+        <div class="header">
+            <h2>GG-Swap</h2>
+            <button class="connect-wallet" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+        </div>
+
+        <div class="token-box">
+            <label>From</label>
+            <div style="display:flex;">
+                <input type="number" id="fromAmount" placeholder="0.0">
+                <select id="fromToken">
+                    <option value="GGPAY">GGPAY</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="text-align:center; margin: 10px 0; color:#45a29e;">↓</div>
+
+        <div class="token-box">
+            <label>To (Estimated)</label>
+            <div style="display:flex;">
+                <input type="number" id="toAmount" placeholder="0.0" readonly>
+                <select id="toToken">
+                    <option value="GGC20">Select Token</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="swap-btn" onclick="swapTokens()">Swap</button>
+        <p id="status" style="font-size: 0.7em; text-align: center; margin-top: 15px; color: #8b949e;"></p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script>
+        let provider, signer, address;
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                address = await signer.getAddress();
+                document.getElementById('connectBtn').innerText = address.substring(0,6) + "..." + address.substring(38);
+                document.getElementById('status').innerText = "Connected to GG HyperNet (Chain: 2026)";
+            } else {
+                alert("Please install MetaMask");
+            }
+        }
+
+        async function swapTokens() {
+            if (!address) return alert("Connect wallet first!");
+            const amount = document.getElementById('fromAmount').value;
+            if (!amount) return alert("Enter amount");
+            
+            document.getElementById('status').innerText = "Processing Swap for " + amount + " GGPAY...";
+            setTimeout(() => {
+                document.getElementById('status').innerText = "Transaction Sent! Please confirm in MetaMask.";
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
