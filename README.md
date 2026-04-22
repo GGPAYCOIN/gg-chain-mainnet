@@ -1,18 +1,13 @@
-# 🌐 GG HyperNet (GG CHAIN)
+# 💎 GGPAY Mainnet - Independent L1 PoW Blockchain
 
-GG HyperNet is a high-performance Layer-1 blockchain ecosystem.
+Welcome to the official repository for **GGPAY**, an independent Layer-1 Proof of Work (PoW) blockchain ecosystem. 
+Unlike standard Ethereum forks, GGPAY has a custom core engine with a **Bitcoin-like Tokenomics model**:
+- **Max Supply:** ~21 Million Coins
+- **Mining Plan:** 40 Years
+- **Halving Cycle:** Block rewards halve every 4 years.
 
-## 🚀 Network Information
-- **Network Name:** GG HyperNet Mainnet
-- **Chain ID:** 2026
-- **RPC URL:** `https://gghyper.net/rpc/`
-- **Currency Symbol:** ggpay
-- **Block Explorer:** [https://gghyper.net](https://gghyper.net)
-
-## 🛠 How to Connect to MetaMask
-1. Open MetaMask and click on the network selector.
-2. Click **Add Network** > **Add a network manually**.
-3. Enter the network details provided above.
-4. Click **Save** and you are ready!
-5.# gg-chain-mainnet
-official repository for the blockchain network.
+## 🌐 Network Details (For MetaMask)
+- **Network Name:** GGPAY Mainnet
+- **RPC URL:** `https://rpc.gghyper.net`
+- **Chain ID:** `2121216`
+- **Currency Symbol:** `GGPAY`
