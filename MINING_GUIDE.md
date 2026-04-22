@@ -1,51 +1,61 @@
-# ⛏️ Mining & Node Setup Guide - GG HyperNet
+# 💎 GGPAY Mainnet - Independent L1 PoW Blockchain
 
-Welcome to the GG HyperNet mining guide. Our network uses a hybrid consensus model: **70% Proof-of-Work (PoW)** and **30% Proof-of-Stake (PoS)** based on the Scrypt algorithm.
+Welcome to the official repository for **GGPAY**, an independent Layer-1 Proof of Work (PoW) blockchain ecosystem. 
+Unlike standard Ethereum forks, GGPAY has a custom core engine with a **Bitcoin-like Tokenomics model**:
+- **Max Supply:** ~21 Million Coins
+- **Mining Plan:** 40 Years
+- **Halving Cycle:** Block rewards halve every 4 years.
+
+## 🌐 Network Details (For MetaMask)
+- **Network Name:** GGPAY Mainnet
+- **RPC URL:** `https://rpc.gghyper.net`
+- **Chain ID:** `2121216`
+- **Currency Symbol:** `GGPAY`
 
 ---
 
-## 🌐 Network Information
-Before you start, add GG HyperNet to your wallet or node configuration:
-- **Network Name:** GG HyperNet Mainnet
-- **RPC URL:** https://gghyper.net/rpc/
-- **Chain ID:** 2026
-- **Currency Symbol:** GGPAY
-- **Block Explorer:** https://gghyper.net
+## ⛏️ How to Mine GGPAY
 
----
+Because GGPAY uses custom tokenomics and halving rules, you cannot use standard Geth. You must compile the GGPAY custom node software. Follow these steps on your Linux/Ubuntu terminal:
 
-## 🚀 Step 1: Requirements
-- **OS:** Ubuntu 22.04 LTS (Recommended)
-- **CPU:** 2+ Cores
-- **RAM:** 4GB+
-- **Storage:** 50GB SSD (Increases as the chain grows)
-
-## 📥 Step 2: Download Genesis File
-Every node must start with our official genesis block. Download it from this repository:
+### Step 1: Install Dependencies & Download Source
 ```bash
-wget [https://raw.githubusercontent.com/GGPAYCOIN/gg-chain-mainnet/main/network/genesis.json](https://raw.githubusercontent.com/GGPAYCOIN/gg-chain-mainnet/main/network/genesis.json)
+sudo apt update
+sudo apt install -y golang git make gcc build-essential python3
+git clone -b v1.10.26 [https://github.com/ethereum/go-ethereum.git](https://github.com/ethereum/go-ethereum.git)
+cd go-ethereum
+Step 2: Apply GGPAY Tokenomics Patch & Build Engine
+Run this automated script to inject the GGPAY halving rules into the core engine and compile your node:
+cat << 'EOF' > patch.py
+import re
+file_path = 'consensus/ethash/consensus.go'
+with open(file_path, 'r') as f: content = f.read()
+custom_logic = """
+        // GGPAY CUSTOM TOKENOMICS (Bitcoin Model)
+        halvingInterval := uint64(8409600)
+        halvings := header.Number.Uint64() / halvingInterval
+        baseGGPAY := new(big.Int).Mul(big.NewInt(125), big.NewInt(1e16))
+        var ggpayReward *big.Int
+        if halvings >= 10 { ggpayReward = big.NewInt(0) } else { ggpayReward = new(big.Int).Rsh(baseGGPAY, uint(halvings)) }
+        state.AddBalance(header.Coinbase, ggpayReward)
+"""
+new_content = re.sub(r'state\.AddBalance\(header\.Coinbase,\s*[^)]+\)', custom_logic.strip(), content)
+with open(file_path, 'w') as f: f.write(new_content)
+EOF
 
-enode://5b6a99801cb71badf990c6be3de3d9eb5b5dc111d057edd0f6bc28b0476af26a5f9274d2f1511ba003d397932da318e489f7d2bcdc96315f33edfcd032897b13@84.46.240.62:30301
+python3 patch.py
+make all
+sudo cp build/bin/geth /usr/local/bin/ggpay-geth
+cd ~
 
-⚙️ Step 3: Node Initialization
-​Initialize your local data directory with the genesis file: geth --datadir ./node_data init genesis.json
+Step 3: Initialize the Genesis Block
+Download the genesis.json file from this repository to your system, then initialize:
+ggpay-geth --datadir ./ggpay_miner_data init genesis.json
 
-🏗️ Step 4: geth --networkid 2026 \
---bootnodes "enode://5b6a99801cb71badf990c6be3de3d9eb5b5dc111d057edd0f6bc28b0476af26a5f9274d2f1511ba003d397932da318e489f7d2bcdc96315f33edfcd032897b13@84.46.240.62:30301" \
---http --http.addr 0.0.0.0 \
---http.corsdomain "*" \
---http.vhosts "*" \
---http.api eth,net,web3,miner
+Step 4: Start Mining!
+Connect to the main network and start mining.
 
+⚠️ IMPORTANT: Replace YOUR_METAMASK_WALLET_ADDRESS with your actual 0x... address!
+ggpay-geth --datadir ./ggpay_miner_data --networkid 2121216 --bootnodes "enode://30ac88b550c507bac07a284c10251b957c55c2f9e04e1ffad7ea8adb6c83ff585652e49a2ee29c711638b63a6b771d3409ef3a22d5d3fc97dfa7f39176073f69@66.135.29.218:30303" --mine --miner.threads 1 --miner.etherbase "YOUR_METAMASK_WALLET_ADDRESS"
 
-
-⛏️ Step 5: Start Mining (PoW)
-​Once your node is fully synced, you can start mining using your CPU.
-​CPU Mining Command:geth --datadir ./node_data --mine --miner.threads 2 --miner.etherbase "YOUR_WALLET_ADDRESS"
-Note: Replace YOUR_WALLET_ADDRESS with your GGPAY address to receive block rewards.
-
-​💎 Step 6: Staking (PoS)
-​To participate in the 30% PoS rewards:
-​Hold GGPAY in your node's wallet.
-​Enable the staking module in your node configuration.
-​Maintain 24/7 uptime to secure the network and earn rewards.
+Congratulations! You are now mining GGPAY and securing the network. 🚀
