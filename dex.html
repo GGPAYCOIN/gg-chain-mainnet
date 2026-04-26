@@ -3,121 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GGPAY Swap | Decentralized Exchange</title>
+    <title>GGPAY Pro Swap</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #f39c12; --bg: #080b11; --card: #121827; --text: #ffffff; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; }
-        nav { width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--card); border-bottom: 1px solid #2d3748; }
-        .container { margin-top: 50px; width: 400px; background: var(--card); padding: 25px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid #2d3748; }
-        .tab-menu { display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #2d3748; }
-        .tab { padding: 10px; cursor: pointer; color: #a0aec0; font-weight: bold; }
-        .tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
-        .input-box { background: #1a202c; padding: 15px; border-radius: 16px; margin-bottom: 10px; text-align: left; }
-        input { width: 100%; background: transparent; border: none; color: white; font-size: 20px; font-weight: bold; outline: none; margin-top: 5px; }
-        label { font-size: 12px; color: #a0aec0; }
-        .btn { width: 100%; padding: 16px; background: var(--primary); border: none; border-radius: 16px; color: #000; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn:hover { background: #e67e22; transform: scale(1.02); }
-        #status { font-size: 12px; margin-top: 15px; color: #718096; }
-        .logo { font-size: 24px; font-weight: bold; color: var(--primary); }
+        body { font-family: 'Poppins', sans-serif; background: #0d1117; color: #e6edf3; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #161b22; width: 420px; padding: 25px; border-radius: 20px; border: 1px solid #30363d; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logo { color: #f39c12; font-weight: bold; font-size: 22px; }
+        .balance-info { font-size: 13px; color: #8b949e; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .input-group { background: #0d1117; padding: 15px; border-radius: 12px; border: 1px solid #30363d; margin-bottom: 10px; }
+        input { background: transparent; border: none; color: #fff; font-size: 24px; width: 100%; outline: none; }
+        .btn { width: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; color: #000; margin-top: 10px; transition: 0.3s; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+        #log { font-size: 12px; color: #f39c12; margin-top: 15px; text-align: center; font-style: italic; }
+        .swap-icon { text-align: center; font-size: 20px; color: #8b949e; margin: -5px 0 5px 0; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<nav>
-    <div class="logo">GGPAY SWAP</div>
-    <button class="btn" id="connectBtn" style="width: auto; padding: 8px 16px;" onclick="connect()">Connect Wallet</button>
-</nav>
-
-<div class="container">
-    <div class="tab-menu">
-        <div class="tab active" onclick="showTab('swap')">Swap</div>
-        <div class="tab" onclick="showTab('pool')">Liquidity</div>
+<div class="card">
+    <div class="header">
+        <div class="logo">GGPAY DEX v2</div>
+        <button id="connectBtn" class="btn" style="width: auto; padding: 5px 15px; font-size: 14px;" onclick="connect()">Connect</button>
     </div>
 
-    <div id="swap-ui">
-        <div class="input-box">
-            <label>From (WGGPAY)</label>
-            <input type="number" id="inputAmount" placeholder="0.0" oninput="calculatePrice()">
+    <div id="swap-container">
+        <div class="balance-info">
+            <span>From (WGGPAY)</span>
+            <span id="balA">Balance: 0.0</span>
         </div>
-        <div style="font-size: 20px; margin: 10px 0;">↓</div>
-        <div class="input-box">
-            <label>To (USDT)</label>
-            <input type="number" id="outputAmount" placeholder="0.0" disabled>
+        <div class="input-group">
+            <input type="number" id="amtIn" placeholder="0.0" oninput="updateOut()">
         </div>
-        <button class="btn" onclick="handleSwap()">Swap Now</button>
+
+        <div class="swap-icon">⇅</div>
+
+        <div class="balance-info">
+            <span>To (USDT)</span>
+            <span id="balB">Balance: 0.0</span>
+        </div>
+        <div class="input-group">
+            <input type="number" id="amtOut" placeholder="0.0" readonly>
+        </div>
+
+        <button class="btn" id="actionBtn" onclick="processSwap()">Swap Now</button>
     </div>
 
-    <div id="pool-ui" style="display:none;">
-        <div class="input-box">
-            <label>Token A (WGGPAY)</label>
-            <input type="number" id="liqA" placeholder="0.0">
-        </div>
-        <div class="input-box">
-            <label>Token B (USDT)</label>
-            <input type="number" id="liqB" placeholder="0.0">
-        </div>
-        <button class="btn" onclick="handleAddLiquidity()">Add Liquidity</button>
-    </div>
-
-    <p id="status">Ready to trade</p>
+    <div id="log">Wallet not connected</div>
 </div>
 
 <script>
-    let web3;
-    let user;
-    const routerAddr = "0xDc23FCaA46412dbbf3468A4ABE4a4d48AfaD1595";
+    let web3, user;
+    const router = "0xDc23FCaA46412dbbf3468A4ABE4a4d48AfaD1595";
     const wggpay = "0x0Ea2C1D525bB40e4d80BB896AFbd023eC99A1140";
     const usdt = "0xf287c0922564c09bf11CeA0D4d9a294fFBee99C8";
 
-    const erc20ABI = [{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
-    const routerABI = [
-        {"inputs":[{"address":"a","type":"address"},{"address":"b","type":"address"},{"uint256":"amA","type":"uint256"},{"uint256":"amB","type":"uint256"},{"address":"to","type":"address"}],"name":"addLiquidity","outputs":[{"uint256":"liq","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
-        {"inputs":[{"address":"a","type":"address"},{"address":"b","type":"address"},{"uint256":"amIn","type":"uint256"},{"uint256":"amOutMin","type":"uint256"},{"address":"to","type":"address"}],"name":"swap","outputs":[],"stateMutability":"nonpayable","type":"function"}
-    ];
+    const abiERC20 = [{"inputs":[{"name":"a","type":"address"}],"name":"balanceOf","outputs":[{"name":"b","type":"uint256"}],"type":"function"},{"inputs":[{"name":"s","type":"address"},{"name":"v","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
+    const abiRouter = [{"inputs":[{"name":"a","type":"address"},{"name":"b","type":"address"},{"name":"ai","type":"uint256"},{"name":"ao","type":"uint256"},{"name":"to","type":"address"}],"name":"swap","outputs":[],"type":"function"}];
 
     async function connect() {
         if (window.ethereum) {
             web3 = new Web3(window.ethereum);
-            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-            user = accounts[0];
-            document.getElementById('connectBtn').innerText = user.substring(0,6) + "...";
+            const acc = await ethereum.request({ method: 'eth_requestAccounts' });
+            user = acc[0];
+            document.getElementById('connectBtn').innerText = user.slice(0,6)+"...";
+            document.getElementById('log').innerText = "Connected! Fetching details...";
+            updateBalances();
         }
     }
 
-    function calculatePrice() {
-        let val = document.getElementById('inputAmount').value;
-        document.getElementById('outputAmount').value = (val * 1.90).toFixed(4);
+    async function updateBalances() {
+        const cA = new web3.eth.Contract(abiERC20, wggpay);
+        const cB = new web3.eth.Contract(abiERC20, usdt);
+        const bA = await cA.methods.balanceOf(user).call();
+        const bB = await cB.methods.balanceOf(user).call();
+        document.getElementById('balA').innerText = "Balance: " + (bA / 1e18).toFixed(2);
+        document.getElementById('balB').innerText = "Balance: " + (bB / 1e18).toFixed(2);
+        document.getElementById('log').innerText = "Market: 1 WGGPAY = 1.90 USDT";
     }
 
-    function showTab(type) {
-        document.getElementById('swap-ui').style.display = type === 'swap' ? 'block' : 'none';
-        document.getElementById('pool-ui').style.display = type === 'pool' ? 'block' : 'none';
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active');
+    function updateOut() {
+        let val = document.getElementById('amtIn').value;
+        document.getElementById('amtOut').value = (val * 1.90).toFixed(4);
     }
 
-    async function handleSwap() {
-        const amount = web3.utils.toWei(document.getElementById('inputAmount').value, 'ether');
-        const token = new web3.eth.Contract(erc20ABI, wggpay);
-        const router = new web3.eth.Contract(routerABI, routerAddr);
-        
-        document.getElementById('status').innerText = "Approving...";
-        await token.methods.approve(routerAddr, amount).send({from: user});
-        
-        document.getElementById('status').innerText = "Swapping...";
-        await router.methods.swap(wggpay, usdt, amount, 0, user).send({from: user});
-        document.getElementById('status').innerText = "Swap Success!";
-    }
+    async function processSwap() {
+        const btn = document.getElementById('actionBtn');
+        const log = document.getElementById('log');
+        const amt = web3.utils.toWei(document.getElementById('amtIn').value, 'ether');
 
-    async function handleAddLiquidity() {
-        const amA = web3.utils.toWei(document.getElementById('liqA').value, 'ether');
-        const amB = web3.utils.toWei(document.getElementById('liqB').value, 'ether');
-        const router = new web3.eth.Contract(routerABI, routerAddr);
-        
-        document.getElementById('status').innerText = "Adding Liquidity...";
-        await router.methods.addLiquidity(wggpay, usdt, amA, amB, user).send({from: user});
-        document.getElementById('status').innerText = "Liquidity Added!";
+        try {
+            btn.disabled = true;
+            const token = new web3.eth.Contract(abiERC20, wggpay);
+            const dex = new web3.eth.Contract(abiRouter, router);
+
+            log.innerText = "Step 1/2: Approving tokens...";
+            await token.methods.approve(router, amt).send({from: user});
+
+            log.innerText = "Step 2/2: Confirming Swap...";
+            await dex.methods.swap(wggpay, usdt, amt, 0, user).send({from: user});
+
+            log.innerText = "🎉 Swap Successful!";
+            updateBalances();
+        } catch (e) {
+            log.innerText = "Error: " + (e.message.includes('User denied') ? "Rejected by user" : "Failed");
+        } finally {
+            btn.disabled = false;
+        }
     }
 </script>
 </body>
