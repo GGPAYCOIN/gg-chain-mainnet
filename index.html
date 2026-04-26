@@ -33,10 +33,8 @@
     <script>
         let web3; 
         let userAccount;
-        // Your deployed Contract Address is here
         const contractAddress = "0x0Ffe2b16878ea8e6BE36Ee46d49c441E5130cE66";
         
-        // ABI for the Smart Contract
         const abi = [
             {
                 "inputs": [{"internalType": "string","name": "_name","type": "string"}],
@@ -67,9 +65,11 @@
             const contract = new web3.eth.Contract(abi, contractAddress);
             
             try {
+                // Here we added the gas limit manually to fix the MetaMask error
                 await contract.methods.register(name).send({
                     from: userAccount,
-                    value: web3.utils.toWei("1", "ether")
+                    value: web3.utils.toWei("1", "ether"),
+                    gas: 3000000 
                 });
                 alert("Congratulations! " + name + ".ggpay is successfully registered to your wallet.");
             } catch (error) {
