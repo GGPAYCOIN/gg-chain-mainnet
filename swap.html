@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GGPAY Swap (WGGPAY to USDT)</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b0e14; color: white; text-align: center; padding: 50px; }
+        .swap-box { background: #1a202c; padding: 30px; border-radius: 20px; display: inline-block; width: 380px; box-shadow: 0 8px 32px rgba(243, 156, 18, 0.15); border: 1px solid #2d3748; }
+        h2 { margin-top: 0; color: #f39c12; font-size: 24px; }
+        .input-group { text-align: left; margin-top: 25px; background: #2d3748; padding: 15px; border-radius: 12px; }
+        label { font-size: 14px; color: #a0aec0; font-weight: bold; }
+        input { width: 90%; padding: 10px 0; margin-top: 5px; border: none; background: transparent; color: white; font-size: 24px; font-weight: bold; outline: none; }
+        button.action-btn { width: 100%; padding: 16px; background: #f39c12; color: #0b0e14; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        button.action-btn:hover { background: #e67e22; transform: translateY(-2px); }
+        button.connect-btn { background: transparent; color: #f39c12; border: 1px solid #f39c12; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        button.connect-btn:hover { background: rgba(243, 156, 18, 0.1); }
+        .down-arrow { margin: 15px 0; color: #718096; font-size: 20px; }
+    </style>
+</head>
+<body>
+    <div class="swap-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>🔄 Swap</h2>
+            <button id="connectBtn" class="connect-btn" onclick="connect()">Connect</button>
+        </div>
+        <p id="walletAddress" style="color: #48bb78; font-size: 13px; text-align: right; margin-top: -15px;"></p>
+
+        <div class="input-group">
+            <label>You Pay (WGGPAY)</label>
+            <input type="number" id="payAmount" placeholder="0.0" oninput="updateReceiveAmount()">
+        </div>
+
+        <div class="down-arrow">⬇</div>
+
+        <div class="input-group">
+            <label>You Receive (USDT)</label>
+            <input type="number" id="receiveAmount" placeholder="0.0" disabled>
+        </div>
+
+        <button class="action-btn" onclick="executeSwap()">Swap Now</button>
+        <p id="status" style="font-size: 13px; margin-top: 20px; color: #a0aec0;"></p>
+    </div>
+
+    <script>
+        let web3;
+        let userAccount;
+        
+        // Swap Contract Address
+        const swapAddress = "0xE49BDb6F977BEB21eB3a41ad021D4F9A9672Ed0E"; 
+        
+        // WrappedGGPAY Contract Address
+        const wggpayAddress = "0x0Ea2C1D525bB40e4d80BB896AFbd023eC99A1140";
+
+        const wggpayABI = [
+            {
+                "constant": false,
+                "inputs": [{"name": "spender", "type": "address"}, {"name": "amount", "type": "uint256"}],
+                "name": "approve",
+                "outputs": [{"name": "", "type": "bool"}],
+                "type": "function"
+            }
+        ];
+
+        const swapABI = [
+            {
+                "inputs": [{"internalType": "uint256", "name": "_wggpayAmount", "type": "uint256"}],
+                "name": "swapWGGpayForUSDT",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        async function connect() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                userAccount = accounts[0];
+                document.getElementById("connectBtn").style.display = "none";
+                document.getElementById("walletAddress").innerText = userAccount.substring(0,6) + "..." + userAccount.substring(38);
+            } else {
+                alert("Please install MetaMask!");
+            }
+        }
+
+        function updateReceiveAmount() {
+            document.getElementById("receiveAmount").value = document.getElementById("payAmount").value;
+        }
+
+        async function executeSwap() {
+            if (!userAccount) {
+                alert("Please connect your wallet first!");
+                return;
+            }
+            
+            const amount = document.getElementById("payAmount").value;
+            if(amount <= 0) {
+                alert("Please enter a valid amount");
+                return;
+            }
+
+            const weiAmount = web3.utils.toWei(amount, "ether");
+            const wggpayContract = new web3.eth.Contract(wggpayABI, wggpayAddress);
+            const swapContract = new web3.eth.Contract(swapABI, swapAddress);
+            const statusText = document.getElementById("status");
+
+            try {
+                statusText.innerText = "Step 1/2: Approving WGGPAY... Please confirm in MetaMask.";
+                statusText.style.color = "#f39c12";
+                await wggpayContract.methods.approve(swapAddress, weiAmount).send({from: userAccount});
+
+                statusText.innerText = "Step 2/2: Swapping... Please confirm in MetaMask.";
+                await swapContract.methods.swapWGGpayForUSDT(weiAmount).send({from: userAccount, gas: 3000000});
+
+                statusText.innerText = "Swap Successful!";
+                statusText.style.color = "#48bb78";
+                alert("Congratulations! Swap successful.");
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "Transaction Failed.";
+                statusText.style.color = "#e53e3e";
+            }
+        }
+    </script>
+</body>
+</html>
