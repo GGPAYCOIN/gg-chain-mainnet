@@ -2,82 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GG-Swap | Decentralized Exchange</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <title>GGPAY Name Service (.ggpay)</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <style>
-        body { background: #0b0c10; color: #66fcf1; font-family: 'Orbitron', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .swap-container { background: #1f2833; padding: 30px; border-radius: 20px; border: 1px solid #45a29e; width: 400px; box-shadow: 0 0 20px rgba(102, 252, 241, 0.2); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header h2 { margin: 0; font-size: 1.2em; color: #45a29e; }
-        .token-box { background: #0b0c10; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #1f2833; }
-        .token-box label { font-size: 0.8em; color: #8b949e; display: block; margin-bottom: 5px; }
-        .token-box input { background: transparent; border: none; color: #fff; font-size: 1.5em; width: 100%; outline: none; }
-        .token-box select { background: #1f2833; border: none; color: #66fcf1; padding: 5px; border-radius: 5px; cursor: pointer; }
-        .swap-btn { width: 100%; background: #45a29e; border: none; padding: 15px; color: #0b0c10; font-weight: bold; border-radius: 15px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .swap-btn:hover { background: #66fcf1; box-shadow: 0 0 15px #66fcf1; }
-        .connect-wallet { background: transparent; border: 1px solid #45a29e; color: #66fcf1; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-size: 0.8em; }
+        body { font-family: Arial, sans-serif; text-align: center; background: #1a1a1a; color: white; padding: 50px; }
+        .container { background: #333; padding: 30px; border-radius: 10px; display: inline-block; box-shadow: 0px 0px 15px #000; }
+        input { padding: 12px; width: 250px; margin: 15px 0; border-radius: 5px; border: none; font-size: 16px; }
+        button { padding: 12px 25px; cursor: pointer; background: #f39c12; color: #fff; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; }
+        button:hover { background: #e67e22; }
+        a { color: #f39c12; text-decoration: none; }
+        .footer { color: #777; font-size: 12px; margin-top: 25px; border-top: 1px solid #555; padding-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="swap-container">
-        <div class="header">
-            <h2>GG-Swap</h2>
-            <button class="connect-wallet" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+    <div class="container">
+        <h2>🌐 Register .ggpay Domain</h2>
+        <p>Powered by <a href="#" target="_blank">GGPAY Mainnet Network</a></p>
+        <button onclick="connect()">Connect MetaMask</button>
+        <p id="walletInfo" style="color: #2ecc71;"></p>
+        <hr style="border-color: #555;">
+        <input type="text" id="domainInput" placeholder="Enter desired name (e.g., office)">
+        <br>
+        <button onclick="buyDomain()">Register (Fee: 1 GG)</button>
+        
+        <div class="footer">
+            Developed and maintained by Mr. Roma
         </div>
-
-        <div class="token-box">
-            <label>From</label>
-            <div style="display:flex;">
-                <input type="number" id="fromAmount" placeholder="0.0">
-                <select id="fromToken">
-                    <option value="GGPAY">GGPAY</option>
-                </select>
-            </div>
-        </div>
-
-        <div style="text-align:center; margin: 10px 0; color:#45a29e;">↓</div>
-
-        <div class="token-box">
-            <label>To (Estimated)</label>
-            <div style="display:flex;">
-                <input type="number" id="toAmount" placeholder="0.0" readonly>
-                <select id="toToken">
-                    <option value="GGC20">Select Token</option>
-                </select>
-            </div>
-        </div>
-
-        <button class="swap-btn" onclick="swapTokens()">Swap</button>
-        <p id="status" style="font-size: 0.7em; text-align: center; margin-top: 15px; color: #8b949e;"></p>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script>
-        let provider, signer, address;
+        let web3; 
+        let userAccount;
+        // Your deployed Contract Address is here
+        const contractAddress = "0x0Ffe2b16878ea8e6BE36Ee46d49c441E5130cE66";
+        
+        // ABI for the Smart Contract
+        const abi = [
+            {
+                "inputs": [{"internalType": "string","name": "_name","type": "string"}],
+                "name": "register",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            }
+        ];
 
-        async function connectWallet() {
+        async function connect() {
             if (window.ethereum) {
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                signer = provider.getSigner();
-                address = await signer.getAddress();
-                document.getElementById('connectBtn').innerText = address.substring(0,6) + "..." + address.substring(38);
-                document.getElementById('status').innerText = "Connected to GG HyperNet (Chain: 2026)";
+                web3 = new Web3(window.ethereum);
+                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                userAccount = accounts[0];
+                document.getElementById("walletInfo").innerText = "Connected: " + userAccount.substring(0,6) + "..." + userAccount.substring(38);
             } else {
-                alert("Please install MetaMask");
+                alert("Please install MetaMask!");
             }
         }
 
-        async function swapTokens() {
-            if (!address) return alert("Connect wallet first!");
-            const amount = document.getElementById('fromAmount').value;
-            if (!amount) return alert("Enter amount");
+        async function buyDomain() {
+            if (!userAccount) {
+                alert("Please connect your wallet first!");
+                return;
+            }
+            const name = document.getElementById("domainInput").value;
+            const contract = new web3.eth.Contract(abi, contractAddress);
             
-            document.getElementById('status').innerText = "Processing Swap for " + amount + " GGPAY...";
-            setTimeout(() => {
-                document.getElementById('status').innerText = "Transaction Sent! Please confirm in MetaMask.";
-            }, 1500);
+            try {
+                await contract.methods.register(name).send({
+                    from: userAccount,
+                    value: web3.utils.toWei("1", "ether")
+                });
+                alert("Congratulations! " + name + ".ggpay is successfully registered to your wallet.");
+            } catch (error) {
+                console.error(error);
+                alert("Transaction failed. Check console for details.");
+            }
         }
     </script>
 </body>
