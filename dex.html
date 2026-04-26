@@ -3,115 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GGPAY Pro Swap</title>
+    <title>GGPAY Official DEX</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #0d1117; color: #e6edf3; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #161b22; width: 420px; padding: 25px; border-radius: 20px; border: 1px solid #30363d; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logo { color: #f39c12; font-weight: bold; font-size: 22px; }
-        .balance-info { font-size: 13px; color: #8b949e; display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .input-group { background: #0d1117; padding: 15px; border-radius: 12px; border: 1px solid #30363d; margin-bottom: 10px; }
-        input { background: transparent; border: none; color: #fff; font-size: 24px; width: 100%; outline: none; }
-        .btn { width: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; color: #000; margin-top: 10px; transition: 0.3s; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        .btn:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
-        #log { font-size: 12px; color: #f39c12; margin-top: 15px; text-align: center; font-style: italic; }
-        .swap-icon { text-align: center; font-size: 20px; color: #8b949e; margin: -5px 0 5px 0; cursor: pointer; }
+        body { font-family: 'Inter', sans-serif; background: #080a0c; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .swap-card { background: #12161c; width: 400px; padding: 25px; border-radius: 24px; border: 1px solid #2d333b; box-shadow: 0 10px 50px rgba(0,0,0,0.7); }
+        .logo { color: #f39c12; font-size: 26px; font-weight: bold; margin-bottom: 25px; text-align: center; }
+        .input-box { background: #1c2128; padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid transparent; transition: 0.3s; }
+        .input-box:focus-within { border-color: #f39c12; }
+        input { background: transparent; border: none; color: white; font-size: 24px; width: 100%; outline: none; font-weight: 600; }
+        .label-info { display: flex; justify-content: space-between; font-size: 13px; color: #8b949e; margin-bottom: 6px; }
+        .btn { width: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border: none; padding: 16px; border-radius: 16px; font-weight: bold; font-size: 18px; cursor: pointer; color: black; margin-top: 15px; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3); }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        #status-msg { font-size: 12px; color: #f39c12; margin-top: 20px; text-align: center; background: rgba(243, 156, 18, 0.1); padding: 10px; border-radius: 10px; font-style: italic; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="header">
-        <div class="logo">GGPAY DEX v2</div>
-        <button id="connectBtn" class="btn" style="width: auto; padding: 5px 15px; font-size: 14px;" onclick="connect()">Connect</button>
+<div class="swap-card">
+    <div class="logo">GGPAY SWAP PRO</div>
+    
+    <div class="input-box">
+        <div class="label-info"><span>From (WGGPAY)</span> <span id="bal1">Balance: 0.0</span></div>
+        <input type="number" id="inAmt" placeholder="0.0" oninput="calculate()">
     </div>
 
-    <div id="swap-container">
-        <div class="balance-info">
-            <span>From (WGGPAY)</span>
-            <span id="balA">Balance: 0.0</span>
-        </div>
-        <div class="input-group">
-            <input type="number" id="amtIn" placeholder="0.0" oninput="updateOut()">
-        </div>
+    <div style="text-align: center; margin: -5px 0 5px 0; color: #8b949e; font-size: 20px;">↓</div>
 
-        <div class="swap-icon">⇅</div>
-
-        <div class="balance-info">
-            <span>To (USDT)</span>
-            <span id="balB">Balance: 0.0</span>
-        </div>
-        <div class="input-group">
-            <input type="number" id="amtOut" placeholder="0.0" readonly>
-        </div>
-
-        <button class="btn" id="actionBtn" onclick="processSwap()">Swap Now</button>
+    <div class="input-box">
+        <div class="label-info"><span>To (USDT)</span> <span id="bal2">Balance: 0.0</span></div>
+        <input type="number" id="outAmt" placeholder="0.0" readonly>
     </div>
 
-    <div id="log">Wallet not connected</div>
+    <button class="btn" id="mainBtn" onclick="connectWallet()">Connect Wallet</button>
+    <div id="status-msg">Welcome to GGPAY Mainnet</div>
 </div>
 
 <script>
     let web3, user;
-    const router = "0xDc23FCaA46412dbbf3468A4ABE4a4d48AfaD1595";
-    const wggpay = "0x0Ea2C1D525bB40e4d80BB896AFbd023eC99A1140";
-    const usdt = "0xf287c0922564c09bf11CeA0D4d9a294fFBee99C8";
+    const ROUTER = "0xDc23FCaA46412dbbf3468A4ABE4a4d48AfaD1595";
+    const WGGPAY = "0x0Ea2C1D525bB40e4d80BB896AFbd023eC99A1140";
+    const USDT = "0xf287c0922564c09bf11CeA0D4d9a294fFBee99C8";
+    const CHAIN_ID = "0x205D58"; // Hex for 2121216
 
-    const abiERC20 = [{"inputs":[{"name":"a","type":"address"}],"name":"balanceOf","outputs":[{"name":"b","type":"uint256"}],"type":"function"},{"inputs":[{"name":"s","type":"address"},{"name":"v","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
-    const abiRouter = [{"inputs":[{"name":"a","type":"address"},{"name":"b","type":"address"},{"name":"ai","type":"uint256"},{"name":"ao","type":"uint256"},{"name":"to","type":"address"}],"name":"swap","outputs":[],"type":"function"}];
-
-    async function connect() {
-        if (window.ethereum) {
-            web3 = new Web3(window.ethereum);
-            const acc = await ethereum.request({ method: 'eth_requestAccounts' });
-            user = acc[0];
-            document.getElementById('connectBtn').innerText = user.slice(0,6)+"...";
-            document.getElementById('log').innerText = "Connected! Fetching details...";
-            updateBalances();
+    async function checkNetwork() {
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (currentChainId !== CHAIN_ID) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: CHAIN_ID }],
+                });
+            } catch (err) {
+                if (err.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: CHAIN_ID,
+                            chainName: 'GGPAY Mainnet',
+                            nativeCurrency: { name: 'GGPAY', symbol: 'GG', decimals: 18 },
+                            rpcUrls: ['https://rpc.ggtaps.world'], // আপনার আরপিসি লিংকটি এখানে নিশ্চিত করুন
+                            blockExplorerUrls: ['https://ggtaps.world']
+                        }]
+                    });
+                }
+            }
         }
     }
 
-    async function updateBalances() {
-        const cA = new web3.eth.Contract(abiERC20, wggpay);
-        const cB = new web3.eth.Contract(abiERC20, usdt);
-        const bA = await cA.methods.balanceOf(user).call();
-        const bB = await cB.methods.balanceOf(user).call();
-        document.getElementById('balA').innerText = "Balance: " + (bA / 1e18).toFixed(2);
-        document.getElementById('balB').innerText = "Balance: " + (bB / 1e18).toFixed(2);
-        document.getElementById('log').innerText = "Market: 1 WGGPAY = 1.90 USDT";
+    async function connectWallet() {
+        if (!window.ethereum) return alert("MetaMask not found!");
+        await checkNetwork();
+        web3 = new Web3(window.ethereum);
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        user = accounts[0];
+        document.getElementById('mainBtn').innerText = "Swap Now";
+        document.getElementById('mainBtn').onclick = startSwap;
+        loadData();
     }
 
-    function updateOut() {
-        let val = document.getElementById('amtIn').value;
-        document.getElementById('amtOut').value = (val * 1.90).toFixed(4);
-    }
-
-    async function processSwap() {
-        const btn = document.getElementById('actionBtn');
-        const log = document.getElementById('log');
-        const amt = web3.utils.toWei(document.getElementById('amtIn').value, 'ether');
-
+    async function loadData() {
+        const abi = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
         try {
-            btn.disabled = true;
-            const token = new web3.eth.Contract(abiERC20, wggpay);
-            const dex = new web3.eth.Contract(abiRouter, router);
+            const c1 = new web3.eth.Contract(abi, WGGPAY);
+            const c2 = new web3.eth.Contract(abi, USDT);
+            const b1 = await c1.methods.balanceOf(user).call();
+            const b2 = await c2.methods.balanceOf(user).call();
+            document.getElementById('bal1').innerText = "Balance: " + (b1/1e18).toFixed(4);
+            document.getElementById('bal2').innerText = "Balance: " + (b2/1e18).toFixed(4);
+            document.getElementById('status-msg').innerText = "System Live: 1 WGGPAY = 1.90 USDT";
+        } catch(e) { document.getElementById('status-msg').innerText = "Error: Cannot read chain data!"; }
+    }
 
-            log.innerText = "Step 1/2: Approving tokens...";
-            await token.methods.approve(router, amt).send({from: user});
+    function calculate() {
+        document.getElementById('outAmt').value = (document.getElementById('inAmt').value * 1.90).toFixed(4);
+    }
 
-            log.innerText = "Step 2/2: Confirming Swap...";
-            await dex.methods.swap(wggpay, usdt, amt, 0, user).send({from: user});
-
-            log.innerText = "🎉 Swap Successful!";
-            updateBalances();
-        } catch (e) {
-            log.innerText = "Error: " + (e.message.includes('User denied') ? "Rejected by user" : "Failed");
-        } finally {
-            btn.disabled = false;
-        }
+    async function startSwap() {
+        const amount = web3.utils.toWei(document.getElementById('inAmt').value, 'ether');
+        const abiE = [{"inputs":[{"name":"s","type":"address"},{"name":"v","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
+        const abiR = [{"inputs":[{"name":"a","type":"address"},{"name":"b","type":"address"},{"name":"ai","type":"uint256"},{"name":"ao","type":"uint256"},{"name":"to","type":"address"}],"name":"swap","outputs":[],"type":"function"}];
+        
+        try {
+            document.getElementById('status-msg').innerText = "Step 1/2: Approving Token...";
+            await new web3.eth.Contract(abiE, WGGPAY).methods.approve(ROUTER, amount).send({from: user});
+            document.getElementById('status-msg').innerText = "Step 2/2: Swapping...";
+            await new web3.eth.Contract(abiR, ROUTER).methods.swap(WGGPAY, USDT, amount, 0, user).send({from: user});
+            document.getElementById('status-msg').innerText = "Success! Transaction Mined. 🎉";
+            loadData();
+        } catch(e) { document.getElementById('status-msg').innerText = "Transaction Failed!"; }
     }
 </script>
 </body>
