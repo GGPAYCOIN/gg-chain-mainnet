@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GGPAY Official Swap</title>
+    <title>GGPAY Official Swap & Wrap</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0b0e11; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .box { background: #1e2329; width: 100%; max-width: 420px; padding: 25px; border-radius: 24px; border: 1px solid #474d57; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-        .logo { color: #f3ba2f; font-size: 26px; font-weight: bold; margin-bottom: 20px; text-align: center; }
-        .info-card { background: #2b3139; padding: 15px; border-radius: 16px; margin-bottom: 15px; border-left: 4px solid #f3ba2f; }
-        .info-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
-        .field { background: #0b0e11; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #333; }
+        body { font-family: 'Segoe UI', sans-serif; background: #080a0c; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .box { background: #12161c; width: 100%; max-width: 420px; padding: 25px; border-radius: 24px; border: 1px solid #2d333b; box-shadow: 0 10px 50px rgba(0,0,0,0.7); }
+        .logo { color: #f39c12; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        .info-card { background: #1c2128; padding: 15px; border-radius: 16px; margin-bottom: 15px; border-left: 4px solid #f39c12; }
+        .field { background: #080a0c; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #30363d; }
         input { background: transparent; border: none; color: white; font-size: 22px; width: 100%; outline: none; }
-        .btn { width: 100%; background: #f3ba2f; color: black; border: none; padding: 18px; border-radius: 16px; font-weight: bold; font-size: 18px; cursor: pointer; transition: 0.2s; }
-        .btn:hover { background: #ffd25d; }
-        #log-box { width: 100%; max-width: 420px; background: #000; color: #00ff00; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 12px; margin-top: 15px; border: 1px solid #333; height: 80px; overflow-y: auto; }
+        .btn { width: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border: none; padding: 16px; border-radius: 16px; font-weight: bold; font-size: 18px; cursor: pointer; color: black; margin-top: 10px; }
+        .wrap-btn { background: #2d333b; color: #f39c12; font-size: 14px; padding: 10px; border-radius: 10px; border: 1px solid #f39c12; cursor: pointer; width: 100%; margin-top: 5px; }
+        #log-box { width: 100%; max-width: 420px; background: #000; color: #00ff00; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 12px; margin-top: 15px; border: 1px solid #333; height: 100px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -24,19 +23,19 @@
     <div class="logo">GGPAY SWAP</div>
 
     <div class="info-card">
-        <div class="info-row"><span>Native Mined Coins (GG):</span> <span id="native-bal" style="color:#f3ba2f; font-weight:bold;">0.00</span></div>
-        <div style="font-size: 11px; color: #8b949e;">These are your direct mining rewards</div>
+        <div style="display: flex; justify-content: space-between;"><span>Mined GG (Native):</span> <span id="native-bal" style="color:#f39c12;">0.00</span></div>
+        <button class="wrap-btn" onclick="wrapGG()">Convert GG to WGGPAY (Wrap)</button>
     </div>
     
     <div class="field">
-        <div class="info-row"><span>From (WGGPAY)</span> <span id="b1">Bal: 0.00</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #8b949e;"><span>From (WGGPAY)</span> <span id="b1">Bal: 0.00</span></div>
         <input type="number" id="amt1" placeholder="0.0" oninput="calc()">
     </div>
 
-    <div style="text-align: center; margin: -10px 0 5px 0; font-size: 20px; color: #474d57;">↓</div>
+    <div style="text-align: center; color: #8b949e; margin: -5px 0 5px 0;">↓</div>
 
     <div class="field">
-        <div class="info-row"><span>To (USDT)</span> <span id="b2">Bal: 0.00</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #8b949e;"><span>To (USDT)</span> <span id="b2">Bal: 0.00</span></div>
         <input type="number" id="amt2" placeholder="0.0" readonly>
     </div>
 
@@ -44,7 +43,7 @@
     <button class="btn" id="swapBtn" onclick="swap()" style="display:none;">Execute Swap</button>
 </div>
 
-<div id="log-box">System Status: Waiting for connection...</div>
+<div id="log-box">System Status: Waiting...</div>
 
 <script>
     let provider, signer, user;
@@ -59,27 +58,25 @@
     }
 
     async function connect() {
-        if (!window.ethereum) return log("Error: Use MetaMask Browser!");
+        if (!window.ethereum) return alert("Open in MetaMask!");
         try {
             provider = new ethers.providers.Web3Provider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = provider.getSigner();
             user = await signer.getAddress();
-            
             document.getElementById('conBtn').style.display = "none";
             document.getElementById('swapBtn').style.display = "block";
-            log("Connected to Wallet: " + user.slice(0,6) + "...");
+            log("Connected: " + user.slice(0,6));
             loadData();
-        } catch (e) { log("Connection Failed!"); }
+        } catch (e) { log("Connection Failed"); }
     }
 
     async function loadData() {
+        if (!user) return;
         try {
-            // 1. Load Native Mined Balance
-            const nativeBal = await provider.getBalance(user);
-            document.getElementById('native-bal').innerText = ethers.utils.formatEther(nativeBal);
-
-            // 2. Load Token Balances
+            const nBal = await provider.getBalance(user);
+            document.getElementById('native-bal').innerText = parseFloat(ethers.utils.formatEther(nBal)).toFixed(4);
+            
             const abi = ["function balanceOf(address) view returns (uint256)"];
             const c1 = new ethers.Contract(WGGPAY, abi, provider);
             const c2 = new ethers.Contract(USDT, abi, provider);
@@ -87,38 +84,42 @@
             const b1 = await c1.balanceOf(user);
             const b2 = await c2.balanceOf(user);
             
-            document.getElementById('b1').innerText = "Bal: " + ethers.utils.formatEther(b1);
-            document.getElementById('b2').innerText = "Bal: " + ethers.utils.formatEther(b2);
-            log("All balances synced successfully.");
-        } catch (e) { log("Data Sync Error! Check RPC."); }
+            document.getElementById('b1').innerText = "Bal: " + parseFloat(ethers.utils.formatEther(b1)).toFixed(4);
+            document.getElementById('b2').innerText = "Bal: " + parseFloat(ethers.utils.formatEther(b2)).toFixed(4);
+            log("Balances updated.");
+        } catch (e) { log("Sync error. Checking network..."); }
     }
 
     function calc() {
         document.getElementById('amt2').value = (document.getElementById('amt1').value * 1.90).toFixed(4);
     }
 
+    async function wrapGG() {
+        const amt = prompt("How many GG to Wrap?");
+        if(!amt) return;
+        const tx = await signer.sendTransaction({ to: WGGPAY, value: ethers.utils.parseEther(amt) });
+        log("Wrapping GG...");
+        await tx.wait();
+        log("Wrap Success! 🎉");
+        loadData();
+    }
+
     async function swap() {
         const val = document.getElementById('amt1').value;
-        if (!val || val <= 0) return log("Enter valid amount!");
-        
-        const amount = ethers.utils.parseEther(val);
+        const amount = ethers.utils.parseEther(val || "0");
         const abiE = ["function approve(address,uint256) returns (bool)"];
         const abiR = ["function swap(address,address,uint256,uint256,address)"];
         
         try {
-            log("Step 1: Approving WGGPAY...");
-            const t1 = new ethers.Contract(WGGPAY, abiE, signer);
-            const tx1 = await t1.approve(ROUTER, amount);
+            log("Step 1: Approving...");
+            const tx1 = await new ethers.Contract(WGGPAY, abiE, signer).approve(ROUTER, amount);
             await tx1.wait();
-            
-            log("Step 2: Executing Swap...");
-            const r = new ethers.Contract(ROUTER, abiR, signer);
-            const tx2 = await r.swap(WGGPAY, USDT, amount, 0, user);
+            log("Step 2: Swapping...");
+            const tx2 = await new ethers.Contract(ROUTER, abiR, signer).swap(WGGPAY, USDT, amount, 0, user);
             await tx2.wait();
-            
-            log("Swap Success! 🎉");
+            log("Swap Done! 🚀");
             loadData();
-        } catch (e) { log("Swap Failed!"); }
+        } catch (e) { log("Swap Failed: Check Balance!"); }
     }
 </script>
 </body>
