@@ -4,17 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GGPAY Official Swap</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.1/web3.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #080a0c; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .swap-card { background: #12161c; width: 400px; padding: 25px; border-radius: 24px; border: 1px solid #2d333b; box-shadow: 0 10px 50px rgba(0,0,0,0.7); }
-        .logo { color: #f39c12; font-size: 26px; font-weight: bold; margin-bottom: 25px; text-align: center; letter-spacing: 1px; }
+        .swap-card { background: #12161c; width: 380px; padding: 25px; border-radius: 24px; border: 1px solid #2d333b; box-shadow: 0 10px 50px rgba(0,0,0,0.7); }
+        .logo { color: #f39c12; font-size: 24px; font-weight: bold; margin-bottom: 25px; text-align: center; }
         .input-box { background: #1c2128; padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid transparent; }
-        input { background: transparent; border: none; color: white; font-size: 24px; width: 100%; outline: none; font-weight: 600; }
+        input { background: transparent; border: none; color: white; font-size: 22px; width: 100%; outline: none; font-weight: 600; }
         .label-info { display: flex; justify-content: space-between; font-size: 13px; color: #8b949e; margin-bottom: 6px; }
-        .btn { width: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border: none; padding: 16px; border-radius: 16px; font-weight: bold; font-size: 18px; cursor: pointer; color: black; margin-top: 15px; transition: 0.3s; }
-        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
-        #status-msg { font-size: 12px; color: #f39c12; margin-top: 20px; text-align: center; background: rgba(243, 156, 18, 0.1); padding: 10px; border-radius: 10px; min-height: 20px; }
+        .btn { width: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border: none; padding: 16px; border-radius: 16px; font-weight: bold; font-size: 18px; cursor: pointer; color: black; margin-top: 15px; }
+        #status-msg { font-size: 12px; color: #f39c12; margin-top: 20px; text-align: center; background: rgba(243, 156, 18, 0.1); padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -35,7 +34,7 @@
     </div>
 
     <button class="btn" id="mainBtn" onclick="connectWallet()">Connect Wallet</button>
-    <div id="status-msg">GGPAY Mainnet - Ready</div>
+    <div id="status-msg">Click "Connect" to start</div>
 </div>
 
 <script>
@@ -43,43 +42,54 @@
     const ROUTER = "0xDc23FCaA46412dbbf3468A4ABE4a4d48AfaD1595";
     const WGGPAY = "0x0Ea2C1D525bB40e4d80BB896AFbd023eC99A1140";
     const USDT = "0xf287c0922564c09bf11CeA0D4d9a294fFBee99C8";
-    const CHAIN_ID = "0x205D58"; // 2121216
     const RPC_URL = "https://rpc.gghyper.net";
+    const CHAIN_ID = 2121216;
 
-    async function checkNetwork() {
-        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-        if (currentChainId !== CHAIN_ID) {
+    async function connectWallet() {
+        if (typeof window.ethereum !== 'undefined') {
             try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: CHAIN_ID }],
-                });
-            } catch (err) {
-                if (err.code === 4902) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: CHAIN_ID,
-                            chainName: 'GGPAY Mainnet',
-                            nativeCurrency: { name: 'GGPAY', symbol: 'GG', decimals: 18 },
-                            rpcUrls: [RPC_URL],
-                            blockExplorerUrls: ['https://gghyper.net']
-                        }]
-                    });
-                }
+                // Request account access
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                user = accounts[0];
+                web3 = new Web3(window.ethereum);
+                
+                // Force switch to GGPAY Mainnet
+                await setupNetwork();
+                
+                document.getElementById('mainBtn').innerText = "Swap Tokens";
+                document.getElementById('mainBtn').onclick = startSwap;
+                document.getElementById('status-msg').innerText = "Connected to GGPAY Mainnet";
+                loadData();
+            } catch (error) {
+                document.getElementById('status-msg').innerText = "Connection Failed!";
+                console.error(error);
             }
+        } else {
+            alert("Please open this in MetaMask Browser!");
         }
     }
 
-    async function connectWallet() {
-        if (!window.ethereum) return alert("Please install MetaMask!");
-        await checkNetwork();
-        web3 = new Web3(window.ethereum);
-        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-        user = accounts[0];
-        document.getElementById('mainBtn').innerText = "Swap Now";
-        document.getElementById('mainBtn').onclick = startSwap;
-        loadData();
+    async function setupNetwork() {
+        const hexChainId = '0x' + CHAIN_ID.toString(16);
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: hexChainId }],
+            });
+        } catch (switchError) {
+            if (switchError.code === 4902) {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: hexChainId,
+                        chainName: 'GGPAY Mainnet',
+                        nativeCurrency: { name: 'GGPAY', symbol: 'GG', decimals: 18 },
+                        rpcUrls: [RPC_URL],
+                        blockExplorerUrls: ['https://gghyper.net']
+                    }]
+                });
+            }
+        }
     }
 
     async function loadData() {
@@ -91,9 +101,8 @@
             const b2 = await c2.methods.balanceOf(user).call();
             document.getElementById('bal1').innerText = "Balance: " + (b1/1e18).toFixed(4);
             document.getElementById('bal2').innerText = "Balance: " + (b2/1e18).toFixed(4);
-            document.getElementById('status-msg').innerText = "Market Rate: 1 WGGPAY = 1.90 USDT";
-        } catch(e) { 
-            document.getElementById('status-msg').innerText = "Network Error: Check RPC connection."; 
+        } catch(e) {
+            document.getElementById('status-msg').innerText = "RPC Syncing... Refresh if needed.";
         }
     }
 
@@ -104,23 +113,23 @@
 
     async function startSwap() {
         const amtValue = document.getElementById('inAmt').value;
-        if(!amtValue || amtValue <= 0) return alert("Please enter a valid amount!");
+        if(!amtValue || amtValue <= 0) return alert("Enter amount!");
         const amount = web3.utils.toWei(amtValue, 'ether');
         
         const abiE = [{"inputs":[{"name":"s","type":"address"},{"name":"v","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}];
         const abiR = [{"inputs":[{"name":"a","type":"address"},{"name":"b","type":"address"},{"name":"ai","type":"uint256"},{"name":"ao","type":"uint256"},{"name":"to","type":"address"}],"name":"swap","outputs":[],"type":"function"}];
         
         try {
-            document.getElementById('status-msg').innerText = "Step 1/2: Confirming Approval...";
+            document.getElementById('status-msg').innerText = "Confirm Approval in MetaMask...";
             await new web3.eth.Contract(abiE, WGGPAY).methods.approve(ROUTER, amount).send({from: user});
             
-            document.getElementById('status-msg').innerText = "Step 2/2: Executing Swap...";
+            document.getElementById('status-msg').innerText = "Confirm Swap in MetaMask...";
             await new web3.eth.Contract(abiR, ROUTER).methods.swap(WGGPAY, USDT, amount, 0, user).send({from: user});
             
             document.getElementById('status-msg').innerText = "Swap Successful! 🎉";
             loadData();
-        } catch(e) { 
-            document.getElementById('status-msg').innerText = "Transaction Failed or Canceled.";
+        } catch(e) {
+            document.getElementById('status-msg').innerText = "Transaction Cancelled.";
         }
     }
 </script>
