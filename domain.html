@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GGPAY Name Service | Secure Your Identity</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg: #0a0b10;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            background: radial-gradient(circle at top right, #1a1c2c, #0a0b10);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-connect {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            padding: 10px 25px;
+            color: black;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-connect:hover {
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
+            transform: scale(1.05);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 40px auto;
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            border: 1px solid var(--glass);
+            background: var(--glass);
+            color: white;
+            outline: none;
+            box-sizing: border-box;
+            backdrop-filter: blur(5px);
+        }
+
+        .suffix {
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .btn-buy {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            font-size: 1.2rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            transition: 0.3s;
+        }
+
+        .btn-buy:hover {
+            background: var(--primary);
+            color: black;
+        }
+
+        .status-msg {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #aaa;
+        }
+
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .card {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 20px;
+            width: 200px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">GGPAY DOMAINS</div>
+        <button class="btn-connect" id="walletBtn" onclick="connectWallet()">CONNECT WALLET</button>
+    </nav>
+
+    <div class="hero">
+        <h1>Claim Your Digital Identity</h1>
+        <p style="color: #888; font-size: 1.2rem;">Get your exclusive .ggpay domain on the GGPAY Chain</p>
+
+        <div class="search-container">
+            <input type="text" id="domainName" placeholder="Search for names...">
+            <span class="suffix">.ggpay</span>
+        </div>
+
+        <button class="btn-buy" onclick="registerDomain()">REGISTER NOW (1 GG)</button>
+        <div class="status-msg" id="status">Please connect your MetaMask to start.</div>
+
+        <div class="features">
+            <div class="card">
+                <h3>Decentralized</h3>
+                <p>Fully owned by you on GGPAY Chain.</p>
+            </div>
+            <div class="card">
+                <h3>Low Cost</h3>
+                <p>Register for just 1 GG Coin.</p>
+            </div>
+            <div class="card">
+                <h3>Unique</h3>
+                <p>No double names, truly exclusive.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const contractAddress = "0x0B05E4a3f4a3788C75979bEDdD2127054121fEe3";
+        const abi = [
+            "function registerName(string memory name) public payable",
+            "function domains(string memory) public view returns (address)"
+        ];
+
+        let signer;
+        let contract;
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                contract = new ethers.Contract(contractAddress, abi, signer);
+                
+                const addr = await signer.getAddress();
+                document.getElementById('walletBtn').innerText = addr.substring(0,6) + "..." + addr.substring(38);
+                document.getElementById('status').innerText = "Wallet Connected! Ready to register.";
+            } else {
+                alert("Please install MetaMask!");
+            }
+        }
+
+        async function registerDomain() {
+            const name = document.getElementById('domainName').value.toLowerCase();
+            if(!name) return alert("Enter a name first!");
+            if(!signer) return alert("Connect wallet first!");
+
+            try {
+                document.getElementById('status').innerText = "Checking availability...";
+                
+                // Transaction
+                document.getElementById('status').innerText = "Confirm transaction in MetaMask...";
+                const tx = await contract.registerName(name, { 
+                    value: ethers.utils.parseEther("1.0") 
+                });
+                
+                document.getElementById('status').innerText = "Registering on-chain... Please wait.";
+                await tx.wait();
+                
+                document.getElementById('status').innerHTML = `<span style="color: #00ff00">Success! ${name}.ggpay is now yours!</span>`;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status').innerHTML = `<span style="color: #ff4d4d">Error: ${err.reason || "Transaction failed"}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
