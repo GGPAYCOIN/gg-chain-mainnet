@@ -1,82 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>GGPAY Name Service (.ggpay)</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #1a1a1a; color: white; padding: 50px; }
-        .container { background: #333; padding: 30px; border-radius: 10px; display: inline-block; box-shadow: 0px 0px 15px #000; }
-        input { padding: 12px; width: 250px; margin: 15px 0; border-radius: 5px; border: none; font-size: 16px; }
-        button { padding: 12px 25px; cursor: pointer; background: #f39c12; color: #fff; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; }
-        button:hover { background: #e67e22; }
-        a { color: #f39c12; text-decoration: none; }
-        .footer { color: #777; font-size: 12px; margin-top: 25px; border-top: 1px solid #555; padding-top: 10px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>🌐 Register .ggpay Domain</h2>
-        <p>Powered by <a href="#" target="_blank">GGPAY Mainnet Network</a></p>
-        <button onclick="connect()">Connect MetaMask</button>
-        <p id="walletInfo" style="color: #2ecc71;"></p>
-        <hr style="border-color: #555;">
-        <input type="text" id="domainInput" placeholder="Enter desired name (e.g., office)">
-        <br>
-        <button onclick="buyDomain()">Register (Fee: 1 GG)</button>
+<div id="domain-app">
+    <h3>Buy your .ggpay Domain</h3>
+    <input type="text" id="domainName" placeholder="Enter name (e.g. suman)">
+    <button onclick="checkAndBuy()">Register & Pay 1 GG</button>
+    <p id="status"></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script>
+    const contractAddress = "YOUR_NAMESERVICE_CONTRACT_ADDRESS";
+    const abi = [ "function registerName(string memory name) public payable" ];
+
+    async function checkAndBuy() {
+        const name = document.getElementById('domainName').value;
+        if(!name) return alert("Please enter a name");
+
+        // Connect to MetaMask
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+
+        const contract = new ethers.Contract(contractAddress, abi, signer);
         
-        <div class="footer">
-            Developed and maintained by Mr. Roma
-        </div>
-    </div>
-
-    <script>
-        let web3; 
-        let userAccount;
-        const contractAddress = "0x0Ffe2b16878ea8e6BE36Ee46d49c441E5130cE66";
-        
-        const abi = [
-            {
-                "inputs": [{"internalType": "string","name": "_name","type": "string"}],
-                "name": "register",
-                "outputs": [],
-                "stateMutability": "payable",
-                "type": "function"
-            }
-        ];
-
-        async function connect() {
-            if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
-                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                userAccount = accounts[0];
-                document.getElementById("walletInfo").innerText = "Connected: " + userAccount.substring(0,6) + "..." + userAccount.substring(38);
-            } else {
-                alert("Please install MetaMask!");
-            }
+        try {
+            document.getElementById('status').innerText = "Processing transaction...";
+            // Setting price as 1 GG (adjust based on your contract logic)
+            const tx = await contract.registerName(name, { 
+                value: ethers.utils.parseEther("1.0") 
+            });
+            await tx.wait();
+            document.getElementById('status').innerText = "Success! " + name + ".ggpay is yours!";
+        } catch (err) {
+            console.error(err);
+            document.getElementById('status').innerText = "Transaction failed!";
         }
-
-        async function buyDomain() {
-            if (!userAccount) {
-                alert("Please connect your wallet first!");
-                return;
-            }
-            const name = document.getElementById("domainInput").value;
-            const contract = new web3.eth.Contract(abi, contractAddress);
-            
-            try {
-                // Here we added the gas limit manually to fix the MetaMask error
-                await contract.methods.register(name).send({
-                    from: userAccount,
-                    value: web3.utils.toWei("1", "ether"),
-                    gas: 3000000 
-                });
-                alert("Congratulations! " + name + ".ggpay is successfully registered to your wallet.");
-            } catch (error) {
-                console.error(error);
-                alert("Transaction failed. Check console for details.");
-            }
-        }
-    </script>
-</body>
-</html>
+    }
+</script>
