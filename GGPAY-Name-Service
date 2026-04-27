@@ -2,19 +2,16 @@
 pragma solidity ^0.8.0;
 
 contract GGPAYNameservice {
-    string public suffix = ".ggpay";
-    uint256 public fee = 1 ether; // 1 GG
-    address public admin;
-
     mapping(string => address) public domains;
+    uint256 public registrationPrice = 1 ether; // 1 GG Coin
 
-    constructor() {
-        admin = msg.sender;
-    }
+    event NameRegistered(string name, address owner);
 
-    function register(string memory _name) public payable {
-        require(msg.value >= fee, "Please send 1 GG to register");
-        require(domains[_name] == address(0), "This name is already registered");
+    function registerName(string memory _name) public payable {
+        require(msg.value >= registrationPrice, "Insufficient GG sent");
+        require(domains[_name] == address(0), "Domain already taken");
+
         domains[_name] = msg.sender;
+        emit NameRegistered(_name, msg.sender);
     }
 }
