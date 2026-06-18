@@ -9,5 +9,5 @@ Unlike standard Ethereum forks, GGPAY has a custom core engine with a **Bitcoin-
 ## 🌐 Network Details (For MetaMask)
 - **Network Name:** GGPAY Mainnet
 - **RPC URL:** `https://rpc.gghyper.net`
-- **Chain ID:** `2121216`
+- **Chain ID:** `2121217`
 - **Currency Symbol:** `GGPAY`
